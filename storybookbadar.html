@@ -1,0 +1,2010 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Perang Badar — MyGhazi Interactive Storybook</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Nunito & Fredoka for warm child-friendly storybook typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:ital,wght@0,500;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ghazi: {
+              50: '#F5F3FF',
+              100: '#EDE9FE',
+              200: '#DDD6FE',
+              300: '#C4B5FD',
+              400: '#A78BFA',
+              500: '#8B5CF6',
+              600: '#6D28D9',
+              700: '#4C1D95',
+              800: '#2E1E59',
+              900: '#1B1136',
+              950: '#120B24',
+            },
+            plum: {
+              deep: '#120B24',
+              base: '#1B1136',
+              card: '#241747',
+              elevated: '#2E1E59',
+              surface: '#1E133B',
+            },
+            gold: {
+              soft: '#FDE68A',
+              warm: '#FBBF24',
+              amber: '#F59E0B',
+              deep: '#D97706',
+            }
+          },
+          fontFamily: {
+            display: ['Fredoka', 'sans-serif'],
+            body: ['Nunito', 'sans-serif'],
+          },
+          boxShadow: {
+            'book': '0 24px 60px -12px rgba(7, 3, 18, 0.85), 0 0 32px -4px rgba(139, 92, 246, 0.22)',
+            'card': '0 10px 28px -6px rgba(10, 5, 24, 0.65)',
+            'btn': '0 4px 0 #120B24',
+            'btn-gold': '0 4px 0 #92400E',
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Base Storybook Styling & Custom Animations (Deep Dark Purple & Plum Theme) */
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: #120B24;
+      background-image:
+        radial-gradient(circle at 14% 16%, rgba(167, 139, 250, 0.16) 0%, transparent 36%),
+        radial-gradient(circle at 86% 84%, rgba(251, 191, 36, 0.10) 0%, transparent 38%),
+        radial-gradient(circle at 50% 45%, rgba(46, 30, 89, 0.45) 0%, transparent 65%),
+        radial-gradient(rgba(196, 181, 253, 0.08) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 26px 26px;
+      color: #F5F3FF;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, .font-storybook {
+      font-family: 'Fredoka', sans-serif;
+    }
+
+    /* Book spine decorative crease on desktop landscape */
+    @media (min-width: 1024px) {
+      .book-spine-effect::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 54%;
+        width: 30px;
+        transform: translateX(-50%);
+        background: linear-gradient(
+          90deg,
+          rgba(10, 5, 24, 0) 0%,
+          rgba(10, 5, 24, 0.35) 45%,
+          rgba(196, 181, 253, 0.12) 50%,
+          rgba(10, 5, 24, 0.35) 55%,
+          rgba(10, 5, 24, 0) 100%
+        );
+        pointer-events: none;
+        z-index: 15;
+      }
+    }
+
+    /* Page Flip / Swipe Animations */
+    .page-stage {
+      transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease;
+      will-change: transform, opacity;
+    }
+
+    .page-exit-left {
+      transform: translateX(-42px) rotateY(-4deg);
+      opacity: 0;
+    }
+
+    .page-exit-right {
+      transform: translateX(42px) rotateY(4deg);
+      opacity: 0;
+    }
+
+    .page-enter-from-right {
+      transform: translateX(42px);
+      opacity: 0;
+    }
+
+    .page-enter-from-left {
+      transform: translateX(-42px);
+      opacity: 0;
+    }
+
+    /* Hotspot Pulse Animation */
+    @keyframes pulseRing {
+      0% {
+        transform: scale(0.85);
+        opacity: 0.9;
+      }
+      70% {
+        transform: scale(1.8);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(1.8);
+        opacity: 0;
+      }
+    }
+
+    .hotspot-ring {
+      animation: pulseRing 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    }
+
+    /* Gentle floating clouds/elements inside vector placeholders */
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-4px); }
+    }
+
+    .float-slow {
+      animation: floatSlow 4.5s ease-in-out infinite;
+    }
+
+    /* Custom Scrollbar for narration text on small screens */
+    .storybook-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .storybook-scroll::-webkit-scrollbar-track {
+      background: rgba(18, 11, 36, 0.6);
+      border-radius: 999px;
+    }
+    .storybook-scroll::-webkit-scrollbar-thumb {
+      background: rgba(167, 139, 250, 0.45);
+      border-radius: 999px;
+    }
+    .storybook-scroll::-webkit-scrollbar-thumb:hover {
+      background: #A78BFA;
+    }
+
+    /* Tactile 3D Button Press */
+    .btn-tactile {
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.2s ease, border-color 0.2s ease;
+    }
+    .btn-tactile:active:not(:disabled) {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #120B24;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col justify-between selection:bg-ghazi-500 selection:text-white">
+
+  <!-- TOP HEADER BAR: Brand MyGhazi, Audio Toggle, Scene Drawer Trigger, & Page Counter -->
+  <header class="w-full max-w-6xl mx-auto px-3 sm:px-6 pt-3 sm:pt-4 pb-2 flex items-center justify-between gap-2 z-30">
+    <!-- Left: MyGhazi Brand Badge -->
+    <div class="flex items-center gap-2.5 sm:gap-3">
+      <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-ghazi-600 via-ghazi-800 to-plum-base text-gold-soft flex items-center justify-center shadow-card border border-gold-warm/40">
+        <!-- Custom Open Book + Crescent Vector Emblem -->
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z" fill="rgba(196,181,253,0.16)"/>
+          <path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z" fill="rgba(196,181,253,0.16)"/>
+          <path d="M12 2.5l.7 1.4 1.5.2-1.1 1.1.3 1.5-1.4-.7-1.4.7.3-1.5-1.1-1.1 1.5-.2z" fill="#FBBF24" stroke="none"/>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-storybook font-bold text-base sm:text-lg text-ghazi-100 tracking-tight leading-none">MyGhazi</span>
+          <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-plum-elevated text-ghazi-300 border border-ghazi-300/25">
+            Seri Sirah Anak
+          </span>
+        </div>
+        <h1 class="text-xs sm:text-sm font-bold text-gold-warm leading-tight mt-0.5">Kisah Perang Badar (17 Ramadhan 2 H)</h1>
+      </div>
+    </div>
+
+    <!-- Right: Interactive Controls (Audio Mute/Unmute, Scene List & Page Indicator) -->
+    <div class="flex items-center gap-2 sm:gap-2.5">
+      <!-- Web Audio API Backsound & SFX Toggle Button -->
+      <button
+        id="btnToggleAudio"
+        type="button"
+        aria-label="Aktifkan atau bisukan suara"
+        title="Backsound & SFX Interaktif"
+        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-plum-card hover:bg-plum-elevated text-ghazi-100 font-bold text-xs sm:text-sm border border-ghazi-300/25 shadow-sm transition cursor-pointer"
+      >
+        <!-- Speaker On Icon -->
+        <svg id="iconAudioOn" class="w-4 h-4 text-gold-warm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+        </svg>
+        <!-- Speaker Muted Icon -->
+        <svg id="iconAudioOff" class="hidden w-4 h-4 text-ghazi-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <line x1="23" y1="9" x2="17" y2="15"></line>
+          <line x1="17" y1="9" x2="23" y2="15"></line>
+        </svg>
+        <span id="audioStatusText" class="hidden sm:inline text-xs font-extrabold tracking-wide text-ghazi-200">Audio: Siap</span>
+      </button>
+
+      <!-- Quick Scene Index Button -->
+      <button
+        id="btnOpenIndex"
+        type="button"
+        aria-label="Daftar 12 Adegan"
+        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-plum-card hover:bg-plum-elevated text-ghazi-100 font-bold text-xs sm:text-sm border border-ghazi-300/25 shadow-sm transition cursor-pointer"
+      >
+        <svg class="w-4 h-4 text-ghazi-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="8" y1="6" x2="21" y2="6"></line>
+          <line x1="8" y1="12" x2="21" y2="12"></line>
+          <line x1="8" y1="18" x2="21" y2="18"></line>
+          <circle cx="3.5" cy="6" r="1.2" fill="currentColor"></circle>
+          <circle cx="3.5" cy="12" r="1.2" fill="currentColor"></circle>
+          <circle cx="3.5" cy="18" r="1.2" fill="currentColor"></circle>
+        </svg>
+        <span class="hidden md:inline">Daftar Adegan</span>
+      </button>
+
+      <!-- Page Counter Pill (1/12 - 12/12) -->
+      <div
+        id="pageCounterBadge"
+        class="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-ghazi-700 to-plum-elevated text-gold-soft font-storybook font-bold text-sm sm:text-base shadow-sm border border-gold-warm/40 tracking-wide select-none"
+        title="Indikator Halaman"
+      >
+        1/12
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN STORYBOOK CONTAINER (Swipeable Area) -->
+  <main class="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-6 py-1 sm:py-2 flex flex-col justify-center">
+    <div
+      id="bookViewport"
+      class="relative w-full bg-plum-base/95 rounded-[28px] sm:rounded-[34px] border border-ghazi-300/25 shadow-book overflow-hidden book-spine-effect select-none"
+    >
+      <!-- Top Decorative Book Ribbon & Progress Bar -->
+      <div class="w-full h-2 bg-plum-deep">
+        <div
+          id="topProgressBar"
+          class="h-full bg-gradient-to-r from-ghazi-500 via-ghazi-400 to-gold-warm transition-all duration-300 rounded-r-full"
+          style="width: 8.33%"
+        ></div>
+      </div>
+
+      <!-- Animated Page Stage -->
+      <div
+        id="pageStage"
+        class="page-stage p-3.5 sm:p-6 lg:p-7 flex flex-col lg:grid lg:grid-cols-12 gap-4 sm:gap-6 items-stretch"
+      >
+        <!-- LEFT / TOP COLUMN: 16:9 CARTOON ILLUSTRATION SLOT + HOTSPOTS (7 cols on lg) -->
+        <div class="lg:col-span-7 flex flex-col justify-between gap-2.5">
+          <!--
+            =========================================================================
+            SLOT ILUSTRASI 16:9 (SIAP DIPASANG GAMBAR KARTUN ADEGAN 1 - 12)
+            Cara mengganti gambar secara permanen:
+            Isi properti `imageSrc` pada array `SCENES` di bagian JavaScript (misal:
+            'images/adegan-01.png') atau ganti langsung atribut `src` pada tag <img>
+            `#sceneImageElement` di bawah ini.
+            =========================================================================
+          -->
+          <div
+            id="illustrationFrame"
+            class="relative w-full aspect-video rounded-2xl sm:rounded-3xl overflow-hidden bg-plum-surface border-2 border-ghazi-300/25 shadow-inner group"
+          >
+            <!-- 1. Custom 2D Children's Storybook Vector Illustration Fallback/Placeholder -->
+            <div id="vectorFallbackContainer" class="absolute inset-0 w-full h-full"></div>
+
+            <!-- 2. Ready-to-Use 16:9 Image Slot (Automatically shown when imageSrc exists or uploaded) -->
+            <img
+              id="sceneImageElement"
+              src=""
+              alt="Ilustrasi Adegan Perang Badar"
+              class="hidden relative z-10 w-full h-full object-cover"
+              draggable="false"
+            />
+
+            <!-- 3. Subtle Slot Guide Badge (Shown when using vector placeholder so creator knows 16:9 slot is ready) -->
+            <div
+              id="slotReadyTag"
+              class="absolute top-2.5 left-2.5 z-20 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-plum-deep/85 backdrop-blur-md text-ghazi-100 text-[11px] font-extrabold border border-ghazi-300/25 shadow-sm pointer-events-none"
+            >
+              <span class="w-2 h-2 rounded-full bg-gold-warm"></span>
+              <span id="slotFileLabel">Slot Ilustrasi 16:9 • adegan-01.png</span>
+            </div>
+
+            <!-- 4. Quick Image Upload Test Button (Lets user test their 16:9 artwork immediately) -->
+            <label
+              for="imageUploadInput"
+              title="Uji pasang gambar ilustrasi 16:9 dari perangkat Anda"
+              class="absolute bottom-2.5 right-2.5 z-20 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-plum-deep/85 hover:bg-plum-elevated text-ghazi-100 text-[11px] font-bold border border-ghazi-300/30 shadow-sm cursor-pointer transition opacity-90 hover:opacity-100"
+            >
+              <svg class="w-3.5 h-3.5 text-gold-warm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="3" ry="3"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+              <span>Pasang Gambar 16:9</span>
+            </label>
+            <input id="imageUploadInput" type="file" accept="image/*" class="hidden" />
+
+            <!-- 5. Interactive Hotspots Layer (Toggled via "Sorot Poin Penting") -->
+            <div
+              id="hotspotsLayer"
+              class="hidden absolute inset-0 z-30 bg-plum-deep/45 backdrop-blur-[1px] transition-opacity duration-200"
+            ></div>
+
+            <!-- 6. Active Hotspot Popover Card inside Illustration -->
+            <div
+              id="hotspotCard"
+              class="hidden absolute bottom-3 left-3 right-3 sm:left-4 sm:right-auto sm:max-w-sm z-40 bg-plum-card/95 backdrop-blur-md rounded-2xl p-3.5 border border-gold-warm/45 shadow-2xl transition-all"
+            >
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span id="hotspotBadgeIcon" class="w-6 h-6 rounded-lg bg-gold-warm/20 text-gold-soft font-storybook font-bold text-xs flex items-center justify-center border border-gold-warm/50">1</span>
+                  <h4 id="hotspotTitle" class="font-storybook font-bold text-sm text-gold-soft">Judul Poin</h4>
+                </div>
+                <button
+                  id="btnCloseHotspotCard"
+                  type="button"
+                  aria-label="Tutup detail poin"
+                  class="w-6 h-6 rounded-lg bg-plum-elevated hover:bg-ghazi-700 text-ghazi-200 flex items-center justify-center text-xs font-bold cursor-pointer border border-ghazi-300/20"
+                >
+                  ✕
+                </button>
+              </div>
+              <p id="hotspotDesc" class="mt-1.5 text-xs sm:text-[13px] text-ghazi-100 font-semibold leading-relaxed">
+                Penjelasan poin penting adegan ini.
+              </p>
+            </div>
+          </div>
+
+          <!-- Illustration Footer Bar: Hotspot Toggle Button & Swipe Hint -->
+          <div class="flex flex-wrap items-center justify-between gap-2 px-1">
+            <button
+              id="btnToggleHotspots"
+              type="button"
+              class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-gold-warm/15 hover:bg-gold-warm/25 text-gold-soft font-bold text-xs sm:text-sm border border-gold-warm/40 shadow-sm transition cursor-pointer"
+            >
+              <svg class="w-4 h-4 text-gold-warm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <span id="btnHotspotLabel">Sorot Poin Penting (3)</span>
+            </button>
+
+            <div class="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-ghazi-300/80">
+              <svg class="w-4 h-4 text-ghazi-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8L22 12L18 16"></path>
+                <path d="M6 8L2 12L6 16"></path>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+              </svg>
+              <span>Geser layar / gunakan panah</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT / BOTTOM COLUMN: STORY NARRATION BOX (5 cols on lg) -->
+        <div class="lg:col-span-5 flex flex-col justify-between bg-plum-card rounded-2xl sm:rounded-3xl p-4 sm:p-5 lg:p-6 border border-ghazi-300/20 shadow-card">
+          <div>
+            <!-- Scene Number + Book Page Reference Pill -->
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+              <span
+                id="sceneStepBadge"
+                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-ghazi-600/80 text-ghazi-100 font-storybook font-bold text-xs tracking-wide border border-ghazi-300/25"
+              >
+                Adegan 1 dari 12
+              </span>
+              <span
+                id="bookPageRef"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gold-warm/15 text-gold-soft font-extrabold text-xs border border-gold-warm/35"
+              >
+                📖 Hal. 233
+              </span>
+            </div>
+
+            <!-- Scene Title -->
+            <h2
+              id="sceneTitle"
+              class="font-storybook font-bold text-xl sm:text-2xl text-ghazi-50 leading-snug mb-3"
+            >
+              Kafilah Dagang Quraisy
+            </h2>
+
+            <!-- Clean, Child-Friendly Indonesian Narration Text -->
+            <div class="storybook-scroll max-h-44 sm:max-h-52 lg:max-h-64 overflow-y-auto pr-1">
+              <p
+                id="sceneNarration"
+                class="text-[15px] sm:text-base text-ghazi-100/95 font-semibold leading-relaxed"
+              >
+                Narasi cerita akan muncul di sini.
+              </p>
+            </div>
+          </div>
+
+          <!-- Bottom Key Facts / Wisdom Pill Box -->
+          <div class="mt-4 pt-3.5 border-t border-dashed border-ghazi-300/20">
+            <div class="rounded-2xl bg-plum-surface border border-gold-warm/30 p-3 flex items-start gap-2.5">
+              <div class="w-7 h-7 rounded-xl bg-gradient-to-br from-gold-warm to-gold-amber text-plum-deep flex items-center justify-center shrink-0 mt-0.5 font-storybook font-bold text-sm shadow-sm">
+                ★
+              </div>
+              <div>
+                <div class="text-[11px] font-extrabold uppercase tracking-wider text-gold-warm">
+                  Catatan & Hikmah
+                </div>
+                <p id="sceneHighlightSummary" class="text-xs sm:text-[13px] font-bold text-ghazi-100 leading-snug mt-0.5">
+                  Ringkasan fakta penting adegan.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- BOTTOM NAVIGATION BAR: Previous, Interactive Page Dots (1-12), & Next -->
+  <footer class="w-full max-w-6xl mx-auto px-3 sm:px-6 pt-2 pb-4 sm:pb-5 z-30">
+    <div class="bg-plum-card/95 backdrop-blur-md rounded-3xl px-3 sm:px-5 py-2.5 sm:py-3 border border-ghazi-300/20 shadow-card flex items-center justify-between gap-2 sm:gap-4">
+      <!-- Previous Button -->
+      <button
+        id="btnPrev"
+        type="button"
+        aria-label="Halaman Sebelumnya"
+        class="btn-tactile inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-5 py-2.5 rounded-2xl bg-plum-elevated hover:bg-ghazi-700 disabled:opacity-40 disabled:pointer-events-none text-ghazi-100 font-storybook font-bold text-sm sm:text-base border border-ghazi-300/30 shadow-btn cursor-pointer"
+      >
+        <svg class="w-5 h-5 text-ghazi-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        <span>Sebelumnya</span>
+      </button>
+
+      <!-- Center: 12 Interactive Dots + Compact Mobile Label -->
+      <div class="flex flex-col items-center justify-center gap-1">
+        <div id="pageDotsContainer" class="flex items-center justify-center gap-1 sm:gap-1.5 flex-wrap">
+          <!-- Dots injected via JS -->
+        </div>
+        <span id="footerChapterShort" class="text-[11px] font-bold text-ghazi-300 hidden sm:block truncate max-w-xs">
+          1. Kafilah Dagang Quraisy
+        </span>
+      </div>
+
+      <!-- Next Button -->
+      <button
+        id="btnNext"
+        type="button"
+        aria-label="Halaman Berikutnya"
+        class="btn-tactile inline-flex items-center justify-center gap-1.5 px-4 sm:px-6 py-2.5 rounded-2xl bg-gradient-to-r from-ghazi-600 to-ghazi-500 hover:from-ghazi-500 hover:to-ghazi-400 disabled:opacity-40 disabled:pointer-events-none text-white font-storybook font-bold text-sm sm:text-base border border-gold-warm/45 shadow-btn cursor-pointer"
+      >
+        <span id="btnNextText">Berikutnya</span>
+        <svg class="w-5 h-5 text-gold-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    </div>
+  </footer>
+
+  <!-- MODAL DRAWER: DAFTAR 12 ADEGAN (QUICK SCENE JUMP) -->
+  <div
+    id="indexModal"
+    class="hidden fixed inset-0 z-50 bg-plum-deep/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="indexModalTitle"
+  >
+    <div class="bg-plum-base w-full max-w-3xl max-h-[86vh] rounded-3xl border border-ghazi-300/30 shadow-2xl flex flex-col overflow-hidden">
+      <div class="px-5 py-4 bg-gradient-to-r from-plum-elevated to-ghazi-700 text-ghazi-50 flex items-center justify-between border-b border-ghazi-300/20">
+        <div>
+          <h3 id="indexModalTitle" class="font-storybook font-bold text-lg sm:text-xl text-gold-soft">
+            Daftar 12 Adegan Perang Badar
+          </h3>
+          <p class="text-xs text-ghazi-200 font-semibold">Pilih adegan untuk langsung membuka halaman cerita</p>
+        </div>
+        <button
+          id="btnCloseIndex"
+          type="button"
+          aria-label="Tutup Daftar Adegan"
+          class="w-9 h-9 rounded-2xl bg-plum-deep/50 hover:bg-plum-deep text-ghazi-100 flex items-center justify-center font-bold text-base cursor-pointer transition border border-ghazi-300/25"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div id="sceneIndexGrid" class="p-4 sm:p-5 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-2.5 storybook-scroll">
+        <!-- 12 Scene Cards injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * ============================================================================
+     * WEB AUDIO API ENGINE (BACKSOUND HIJAZ PADANG PASIR & SFX INTERAKTIF)
+     * - Murni menggunakan Web Audio API tanpa file audio eksternal.
+     * - Otomatis aktif secara aman saat interaksi pertama pengguna (klik/sentuh/swipe)
+     *   kecuali pengguna memilih mode mute.
+     * ============================================================================
+     */
+    const StoryAudioEngine = (() => {
+      let ctx = null;
+      let masterGain = null;
+      let bgmGain = null;
+      let sfxGain = null;
+      let isMuted = false;
+      let isStarted = false;
+      let padIntervalId = null;
+      let melodyIntervalId = null;
+      let windSource = null;
+
+      // Tangga Nada Hijaz / Hijaz Kar lembut dalam Hz (D4 - Eb4 - F#4 - G4 - A4 - Bb4 - C#5 - D5)
+      const HIJAZ_NOTES = [293.66, 311.13, 369.99, 392.00, 440.00, 466.16, 554.37, 587.33];
+      // Pola melodi petikan oud/harpa lembut bernuansa petualangan malam gurun
+      const MELODY_PATTERN = [0, 2, 3, 4, 5, 4, 3, 2, 1, 2, 0, -1, 4, 6, 7, 4];
+      let stepIndex = 0;
+
+      function initContext() {
+        if (ctx) return;
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+
+        ctx = new AudioCtx();
+
+        masterGain = ctx.createGain();
+        masterGain.gain.setValueAtTime(isMuted ? 0 : 0.85, ctx.currentTime);
+        masterGain.connect(ctx.destination);
+
+        bgmGain = ctx.createGain();
+        bgmGain.gain.setValueAtTime(0.24, ctx.currentTime);
+        bgmGain.connect(masterGain);
+
+        sfxGain = ctx.createGain();
+        sfxGain.gain.setValueAtTime(0.55, ctx.currentTime);
+        sfxGain.connect(masterGain);
+      }
+
+      // Angin gurun halus bervolume sangat rendah untuk suasana malam Badar
+      function startDesertAmbience() {
+        if (!ctx || windSource) return;
+        const bufferSize = ctx.sampleRate * 3;
+        const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = Math.random() * 2 - 1;
+        }
+
+        windSource = ctx.createBufferSource();
+        windSource.buffer = noiseBuffer;
+        windSource.loop = true;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.frequency.setValueAtTime(340, ctx.currentTime);
+        filter.Q.setValueAtTime(2.8, ctx.currentTime);
+
+        const windGain = ctx.createGain();
+        windGain.gain.setValueAtTime(0.025, ctx.currentTime);
+
+        windSource.connect(filter);
+        filter.connect(windGain);
+        windGain.connect(bgmGain);
+        windSource.start();
+      }
+
+      // Pad hangat berlapis low-pass filter (Drone D3 + A3)
+      function triggerWarmPad() {
+        if (!ctx || isMuted || ctx.state !== "running") return;
+        const now = ctx.currentTime;
+        const freqs = [146.83, 220.00]; // D3 & A3
+
+        freqs.forEach((freq) => {
+          const osc = ctx.createOscillator();
+          const filter = ctx.createBiquadFilter();
+          const gain = ctx.createGain();
+
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(freq, now);
+
+          filter.type = "lowpass";
+          filter.frequency.setValueAtTime(420, now);
+
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.linearRampToValueAtTime(0.09, now + 1.6);
+          gain.gain.exponentialRampToValueAtTime(0.0008, now + 5.8);
+
+          osc.connect(filter);
+          filter.connect(gain);
+          gain.connect(bgmGain);
+
+          osc.start(now);
+          osc.stop(now + 6.0);
+        });
+      }
+
+      // Petikan oud/harpa sintetis lembut pada tangga nada Hijaz
+      function triggerOudPluck(freq, duration = 1.4, volume = 0.14) {
+        if (!ctx || isMuted || ctx.state !== "running") return;
+        const now = ctx.currentTime;
+
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const filter = ctx.createBiquadFilter();
+        const env = ctx.createGain();
+
+        osc1.type = "triangle";
+        osc1.frequency.setValueAtTime(freq, now);
+
+        osc2.type = "sine";
+        osc2.frequency.setValueAtTime(freq * 2, now);
+
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(1400, now);
+        filter.frequency.exponentialRampToValueAtTime(360, now + duration);
+
+        env.gain.setValueAtTime(0.0001, now);
+        env.gain.linearRampToValueAtTime(volume, now + 0.025);
+        env.gain.exponentialRampToValueAtTime(0.0005, now + duration);
+
+        const subGain = ctx.createGain();
+        subGain.gain.setValueAtTime(0.32, now);
+
+        osc1.connect(filter);
+        osc2.connect(subGain);
+        subGain.connect(filter);
+        filter.connect(env);
+        env.connect(bgmGain);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + duration + 0.05);
+        osc2.stop(now + duration + 0.05);
+      }
+
+      function startBacksoundLoop() {
+        if (isStarted) return;
+        isStarted = true;
+        startDesertAmbience();
+        triggerWarmPad();
+
+        padIntervalId = setInterval(() => {
+          triggerWarmPad();
+        }, 5600);
+
+        melodyIntervalId = setInterval(() => {
+          if (isMuted || !ctx || ctx.state !== "running") return;
+          const noteIdx = MELODY_PATTERN[stepIndex % MELODY_PATTERN.length];
+          stepIndex++;
+          if (noteIdx >= 0 && HIJAZ_NOTES[noteIdx]) {
+            triggerOudPluck(HIJAZ_NOTES[noteIdx], 1.5, 0.13);
+          }
+        }, 720);
+      }
+
+      function unlockAndStart() {
+        initContext();
+        if (!ctx) return;
+        if (ctx.state === "suspended") {
+          ctx.resume().then(() => {
+            if (!isStarted) startBacksoundLoop();
+            updateAudioUI();
+          });
+        } else {
+          if (!isStarted) startBacksoundLoop();
+          updateAudioUI();
+        }
+      }
+
+      function toggleMute() {
+        initContext();
+        isMuted = !isMuted;
+        if (ctx && ctx.state === "suspended" && !isMuted) {
+          ctx.resume();
+        }
+        if (ctx && !isStarted && !isMuted) {
+          startBacksoundLoop();
+        }
+        if (masterGain && ctx) {
+          masterGain.gain.setTargetAtTime(isMuted ? 0 : 0.85, ctx.currentTime, 0.05);
+        }
+        updateAudioUI();
+        if (!isMuted) {
+          playClickSFX();
+        }
+      }
+
+      // SFX 1: Gesekan kertas buku lembut + petikan hangat saat pindah/swipe halaman
+      function playPageTurnSFX(direction = "next") {
+        if (isMuted) return;
+        unlockAndStart();
+        if (!ctx || ctx.state !== "running") return;
+
+        const now = ctx.currentTime;
+
+        // Filtered noise sweep (kertas dibalik)
+        const duration = 0.24;
+        const bufferSize = Math.floor(ctx.sampleRate * duration);
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.sin((i / bufferSize) * Math.PI);
+        }
+
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = "bandpass";
+        const startFreq = direction === "next" ? 650 : 1150;
+        const endFreq = direction === "next" ? 1350 : 620;
+        filter.frequency.setValueAtTime(startFreq, now);
+        filter.frequency.exponentialRampToValueAtTime(endFreq, now + duration);
+        filter.Q.setValueAtTime(1.8, now);
+
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.001, now);
+        noiseGain.gain.linearRampToValueAtTime(0.22, now + 0.06);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        noise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(sfxGain);
+        noise.start(now);
+
+        // Nada petikan singkat bernuansa hangat
+        const pluckFreq = direction === "next" ? 440.0 : 369.99; // A4 atau F#4
+        const osc = ctx.createOscillator();
+        const oscGain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(pluckFreq, now + 0.04);
+        osc.frequency.exponentialRampToValueAtTime(pluckFreq * 1.12, now + 0.22);
+
+        oscGain.gain.setValueAtTime(0.0001, now + 0.04);
+        oscGain.gain.linearRampToValueAtTime(0.09, now + 0.07);
+        oscGain.gain.exponentialRampToValueAtTime(0.0005, now + 0.26);
+
+        osc.connect(oscGain);
+        oscGain.connect(sfxGain);
+        osc.start(now + 0.04);
+        osc.stop(now + 0.28);
+      }
+
+      // SFX 2: Denting kilau (chime harmonis dua nada emas/lavender) untuk Hotspot
+      function playHotspotChimeSFX(pinNumber = 1) {
+        if (isMuted) return;
+        unlockAndStart();
+        if (!ctx || ctx.state !== "running") return;
+
+        const now = ctx.currentTime;
+        const baseNotes = [587.33, 659.25, 739.99]; // D5, E5, F#5
+        const firstFreq = baseNotes[(pinNumber - 1) % baseNotes.length];
+        const secondFreq = firstFreq * 1.25; // Harmoni terts mayor hangat
+
+        [firstFreq, secondFreq].forEach((freq, idx) => {
+          const t = now + idx * 0.075;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freq, t);
+
+          gain.gain.setValueAtTime(0.0001, t);
+          gain.gain.linearRampToValueAtTime(0.14, t + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0004, t + 0.48);
+
+          osc.connect(gain);
+          gain.connect(sfxGain);
+
+          osc.start(t);
+          osc.stop(t + 0.52);
+        });
+      }
+
+      // SFX 3: Klik tombol ringan saat membuka/menutup daftar adegan
+      function playClickSFX() {
+        if (isMuted) return;
+        unlockAndStart();
+        if (!ctx || ctx.state !== "running") return;
+
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(523.25, now); // C5
+        osc.frequency.exponentialRampToValueAtTime(392.0, now + 0.09);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(0.11, now + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0005, now + 0.11);
+
+        osc.connect(gain);
+        gain.connect(sfxGain);
+
+        osc.start(now);
+        osc.stop(now + 0.12);
+      }
+
+      return {
+        unlockAndStart,
+        toggleMute,
+        playPageTurnSFX,
+        playHotspotChimeSFX,
+        playClickSFX,
+        getState: () => ({ isMuted, isStarted })
+      };
+    })();
+
+    /**
+     * ============================================================================
+     * DATA 12 ADEGAN STORYBOOK "PERANG BADAR" (MyGhazi)
+     * Catatan:
+     * - Properti `imageSrc` disiapkan kosong ("") secara default sehingga ilustrasi
+     *   vektor 2D ramah anak tampil otomatis. Jika file gambar 16:9 sudah siap,
+     *   cukup isi `imageSrc: "assets/adegan-01.png"` (atau gunakan tombol "Pasang Gambar 16:9").
+     * - Tidak ada penggambaran wajah Rasulullah ﷺ di seluruh adegan.
+     * ============================================================================
+     */
+    const SCENES = [
+      {
+        id: 1,
+        pageRef: "Hal. 233",
+        defaultFileName: "adegan-01.png",
+        imageSrc: "",
+        title: "Kafilah Dagang Quraisy",
+        narration:
+          "Kafilah dagang besar milik kaum Quraisy yang dipimpin oleh Abu Sufyan bin Harb sedang dalam perjalanan pulang dari negeri Syam menuju Makkah. Kafilah ini membawa sekitar 1.000 ekor unta yang sarat dengan barang dagangan bernilai sangat tinggi. Ketika mendengar kabar tersebut, Rasulullah ﷺ melihat peluang strategis untuk menghadang kafilah itu sebagai bagian dari upaya melemahkan kekuatan ekonomi Quraisy yang selama ini memusuhi kaum Muslimin.",
+        highlight: "Kafilah Abu Sufyan membawa ±1.000 unta bermuatan harta dagangan besar dari Syam.",
+        hotspots: [
+          {
+            x: 26,
+            y: 54,
+            title: "1.000 Unta Kafilah",
+            desc: "Rombongan kafilah dagang Quraisy dari Syam membawa muatan bernilai sangat tinggi dengan pengawalan terbatas."
+          },
+          {
+            x: 62,
+            y: 36,
+            title: "Jalur Dagang Syam–Makkah",
+            desc: "Rute perdagangan utama Quraisy melewati kawasan pesisir dekat lembah Badar yang strategis."
+          },
+          {
+            x: 80,
+            y: 66,
+            title: "Langkah Strategis Madinah",
+            desc: "Rasulullah ﷺ mengajak para sahabat bersiap mencegat kafilah sebagai balasan atas harta Muslimin yang dirampas di Makkah."
+          }
+        ]
+      },
+      {
+        id: 2,
+        pageRef: "Hal. 234",
+        defaultFileName: "adegan-02.png",
+        imageSrc: "",
+        title: "Keberangkatan Pasukan Muslim",
+        narration:
+          "Rasulullah ﷺ berangkat dari Madinah bersama sekitar 313 hingga 317 sahabat yang terdiri dari kaum Muhajirin serta kaum Ansar dari suku Aus dan Khazraj. Karena awalnya hanya berniat menghadang kafilah, perlengkapan mereka sangat sederhana: hanya ada 70 ekor unta yang dinaiki secara bergantian dan 2 ekor kuda. Rasulullah ﷺ juga membagi komando dengan rapi menjadi batalion Muhajirin dan batalion Ansar serta menyerahkan panji-panji pasukan.",
+        highlight: "313–317 sahabat berangkat dengan 70 unta (dinaiki bergantian) dan 2 kuda.",
+        hotspots: [
+          {
+            x: 24,
+            y: 44,
+            title: "Panji Muhajirin & Ansar",
+            desc: "Pasukan dibagi rapi: panji utama dan panji batalion Muhajirin serta suku Aus dan Khazraj dari Ansar."
+          },
+          {
+            x: 54,
+            y: 60,
+            title: "70 Unta & 2 Kuda",
+            desc: "Setiap 2 hingga 3 sahabat menaiki satu unta secara bergantian dengan penuh kebersamaan dan kesabaran."
+          },
+          {
+            x: 80,
+            y: 48,
+            title: "313–317 Sahabat",
+            desc: "Terdiri dari kaum Muhajirin dan Ansar yang berangkat dengan semangat ketaatan yang tinggi."
+          }
+        ]
+      },
+      {
+        id: 3,
+        pageRef: "Hal. 235–236",
+        defaultFileName: "adegan-03.png",
+        imageSrc: "",
+        title: "Quraisy Mengumpulkan Pasukan",
+        narration:
+          "Abu Sufyan yang sangat waspada terus mencari berita tentang pergerakan kaum Muslimin dari para musafir. Begitu mengetahui kafilahnya terancam dihadang, ia segera mengutus Dhamdham bin Amr Al-Ghifari memacu untanya ke Makkah untuk meminta pertolongan. Mendengar seruan itu, kaum Quraisy bergerak cepat menyiapkan pasukan besar berjumlah sekitar 1.300 prajurit lengkap dengan 100 ekor kuda dan 600 baju besi, terutama atas dorongan keras Abu Jahl.",
+        highlight: "Quraisy mengerahkan ±1.300 pasukan, 100 kuda, dan 600 baju besi atas dorongan Abu Jahl.",
+        hotspots: [
+          {
+            x: 24,
+            y: 52,
+            title: "Utusan Dhamdham Al-Ghifari",
+            desc: "Diutus Abu Sufyan dengan kecepatan penuh ke Makkah untuk menyerukan bahaya yang mengancam kafilah."
+          },
+          {
+            x: 58,
+            y: 45,
+            title: "1.300 Pasukan & 600 Baju Besi",
+            desc: "Quraisy berangkat dengan perlengkapan perang mewah: 100 kuda dan 600 baju besi untuk menunjukkan kekuatan."
+          },
+          {
+            x: 82,
+            y: 64,
+            title: "Hasutan Abu Jahl",
+            desc: "Abu Jahl memprovokasi para pemuka Quraisy agar berangkat dengan penuh kesombongan."
+          }
+        ]
+      },
+      {
+        id: 4,
+        pageRef: "Hal. 236–237",
+        defaultFileName: "adegan-04.png",
+        imageSrc: "",
+        title: "Kafilah Berhasil Meloloskan Diri",
+        narration:
+          "Dengan cerdik, Abu Sufyan membelokkan jalur kafilahnya ke arah pantai barat menjauhi jalur utama dekat Badar sehingga berhasil lolos dari hadangan pasukan Muslim. Setelah kafilah berada di zona aman, Abu Sufyan mengirim utusan kepada pasukan Quraisy agar kembali saja ke Makkah karena harta mereka telah selamat. Sebagian rombongan Quraisy ingin pulang, namun Abu Jahl dengan angkuh menolak dan tetap memaksa pasukan maju menuju Badar.",
+        highlight: "Kafilah selamat lewat jalur pesisir, tetapi Abu Jahl tetap memaksa pasukan Quraisy maju ke Badar.",
+        hotspots: [
+          {
+            x: 28,
+            y: 42,
+            title: "Belok ke Jalur Pantai",
+            desc: "Abu Sufyan mengubah rute kafilah menuju pesisir laut sehingga terhindar dari hadangan di Badar."
+          },
+          {
+            x: 56,
+            y: 65,
+            title: "Pesan Agar Pulang",
+            desc: "Abu Sufyan mengabarkan bahwa kafilah sudah selamat dan meminta pasukan Makkah pulang saja."
+          },
+          {
+            x: 80,
+            y: 46,
+            title: "Kesombongan Abu Jahl",
+            desc: "Abu Jahl bersikeras maju ke Badar untuk berpesta dan menunjukkan keperkasaan Quraisy."
+          }
+        ]
+      },
+      {
+        id: 5,
+        pageRef: "Hal. 238–239",
+        defaultFileName: "adegan-05.png",
+        imageSrc: "",
+        title: "Musyawarah Rasulullah ﷺ dan Para Sahabat",
+        narration:
+          "Mengetahui kafilah dagang telah lolos sementara pasukan besar Quraisy justru bergerak mendekati Badar, Rasulullah ﷺ mengumpulkan para sahabat untuk bermusyawarah. Abu Bakar Ash-Shiddiq, Umar bin Al-Khattab, dan Miqdad bin Amr dari kaum Muhajirin menyatakan kesetiaan penuh. Kemudian Sa'ad bin Mu'adz tampil mewakili kaum Ansar dan menegaskan dengan lantang bahwa kaum Ansar siap mengikuti ke mana pun Rasulullah ﷺ melangkah.",
+        highlight: "Musyawarah menyatukan tekad kaum Muhajirin dan Ansar (dipimpin Sa'ad bin Mu'adz) untuk taat sepenuhnya.",
+        hotspots: [
+          {
+            x: 26,
+            y: 52,
+            title: "Dukungan Kaum Muhajirin",
+            desc: "Abu Bakar, Umar, dan Miqdad menegaskan kesiapan berjuang bersama Rasulullah ﷺ dalam keadaan apa pun."
+          },
+          {
+            x: 54,
+            y: 40,
+            title: "Indahnya Musyawarah",
+            desc: "Rasulullah ﷺ menghargai pendapat para sahabat sebelum mengambil keputusan besar."
+          },
+          {
+            x: 78,
+            y: 56,
+            title: "Tekad Sa'ad bin Mu'adz",
+            desc: "Pemimpin Ansar ini menyatakan: 'Demi Allah, seandainya engkau membawa kami menyeberangi lautan, niscaya kami akan ikut!'"
+          }
+        ]
+      },
+      {
+        id: 6,
+        pageRef: "Hal. 240–241",
+        defaultFileName: "adegan-06.png",
+        imageSrc: "",
+        title: "Pengintaian dan Pengumpulan Informasi",
+        narration:
+          "Rasulullah ﷺ bersama para sahabat melakukan pengintaian dengan cermat di sekitar lembah dan sumur Badar untuk mengetahui posisi musuh. Di dekat mata air Badar, para sahabat mendapati dua orang pembawa air milik pasukan Quraisy. Dari keterangan mereka—termasuk informasi jumlah unta yang disembelih setiap hari oleh Quraisy—diketahui bahwa jumlah pasukan Quraisy yang hadir di Badar berkisar antara 900 hingga 1.000 orang.",
+        highlight: "Dari pengintaian di sumur Badar diketahui pasukan Quraisy berjumlah sekitar 900–1.000 orang.",
+        hotspots: [
+          {
+            x: 28,
+            y: 56,
+            title: "Sumur Air Badar",
+            desc: "Titik penting di lembah Badar tempat para pencari air dari kedua belah pihak bertemu."
+          },
+          {
+            x: 56,
+            y: 44,
+            title: "Informasi Pembawa Air",
+            desc: "Dari dua pembawa air Quraisy, didapat petunjuk akurat mengenai lokasi dan kondisi perkemahan musuh."
+          },
+          {
+            x: 80,
+            y: 62,
+            title: "Perkiraan 900–1.000 Pasukan",
+            desc: "Quraisy menyembelih 9 hingga 10 unta setiap hari, menandakan jumlah mereka sekitar 900–1.000 orang."
+          }
+        ]
+      },
+      {
+        id: 7,
+        pageRef: "Hal. 242–243",
+        defaultFileName: "adegan-07.png",
+        imageSrc: "",
+        title: "Menempati Posisi Strategis di Badar",
+        narration:
+          "Pasukan Muslim bergerak lebih dahulu mendekati sumber air Badar. Sahabat Al-Hubab bin Al-Mundzir mengusulkan strategi cerdas: menempati mata air yang paling dekat dengan musuh, membuat kolam penampungan air untuk pasukan Muslim, dan menutup sumur-sumur lainnya. Sementara itu, Sa'ad bin Mu'adz mengusulkan pembangunan pos atau tenda komando ('Arisy) di tempat yang agak tinggi bagi Rasulullah ﷺ untuk memantau jalannya pertempuran.",
+        highlight: "Saran strategis Al-Hubab bin Al-Mundzir (kolam air) dan Sa'ad bin Mu'adz (pos komando 'Arisy).",
+        hotspots: [
+          {
+            x: 28,
+            y: 64,
+            title: "Kolam Air Al-Hubab",
+            desc: "Atas usul Al-Hubab bin Al-Mundzir, pasukan Muslim menguasai sumber air utama dan membuat kolam penampungan."
+          },
+          {
+            x: 68,
+            y: 34,
+            title: "Pos Komando ('Arisy)",
+            desc: "Sa'ad bin Mu'adz mengusulkan tenda komando di bukit kecil agar Rasulullah ﷺ dapat mengatur strategi dengan aman."
+          },
+          {
+            x: 50,
+            y: 52,
+            title: "Terbuka Terhadap Ide Baik",
+            desc: "Rasulullah ﷺ menerima saran strategis para sahabat yang tepat sasaran."
+          }
+        ]
+      },
+      {
+        id: 8,
+        pageRef: "Hal. 243–245",
+        defaultFileName: "adegan-08.png",
+        imageSrc: "",
+        title: "Persiapan Malam Sebelum Pertempuran",
+        narration:
+          "Pada malam sebelum pertempuran, Rasulullah ﷺ mengatur posisi pasukan dengan tertib lalu bermunajat kepada Allah. Allah menurunkan rasa kantuk yang menenangkan sehingga para sahabat dapat beristirahat dengan nyenyak, serta menurunkan hujan lembut yang menyucikan mereka, memadatkan pasir di pijakan kaki kaum Muslimin, dan membuat tanah di sisi pasukan Quraisy menjadi becek dan licin saat mereka mulai memasuki lembah Badar.",
+        highlight: "Hujan turun menenangkan hati kaum Muslimin dan memadatkan pijakan kaki mereka.",
+        hotspots: [
+          {
+            x: 34,
+            y: 30,
+            title: "Hujan Rahmat dari Langit",
+            desc: "Hujan turun memadatkan pasir lembut di sisi kaum Muslimin sehingga langkah kaki mereka kokoh."
+          },
+          {
+            x: 62,
+            y: 62,
+            title: "Istirahat yang Menenangkan",
+            desc: "Kaum Muslimin merasakan ketenangan hati dan tidur nyenyak sebelum hari penentuan tiba."
+          },
+          {
+            x: 82,
+            y: 48,
+            title: "Kedatangan Pasukan Quraisy",
+            desc: "Pasukan Quraisy mulai bergerak memasuki area lembah Badar dengan tanah yang licin."
+          }
+        ]
+      },
+      {
+        id: 9,
+        pageRef: "Hal. 246–247",
+        defaultFileName: "adegan-09.png",
+        imageSrc: "",
+        title: "Dua Pasukan Saling Berhadapan",
+        narration:
+          "Pagi hari 17 Ramadhan tahun ke-2 Hijriah, kedua pasukan berdiri saling berhadapan di lembah Badar. Rasulullah ﷺ memeriksa dan meluruskan barisan kaum Muslimin agar rapat dan rapi—termasuk momen berkesan ketika Sawad bin Ghaziyah merapikan barisannya dengan penuh kecintaan kepada beliau. Setelah barisan tertata kokoh, Rasulullah ﷺ memanjatkan doa dengan penuh kekhusyukan memohon pertolongan dan kemenangan yang telah Allah janjikan.",
+        highlight: "Barisan diluruskan dengan rapi (termasuk momen Sawad bin Ghaziyah) disertai doa penuh harap.",
+        hotspots: [
+          {
+            x: 30,
+            y: 56,
+            title: "Barisan Rapat & Teratur",
+            desc: "Rasulullah ﷺ meluruskan shaf pasukan agar kokoh seperti bangunan yang tersusun rapi."
+          },
+          {
+            x: 54,
+            y: 42,
+            title: "Kisah Sawad bin Ghaziyah",
+            desc: "Momen hangat saat Sawad merapikan barisannya dan memeluk Rasulullah ﷺ sebelum bertempur."
+          },
+          {
+            x: 78,
+            y: 34,
+            title: "Doa Memohon Pertolongan",
+            desc: "Rasulullah ﷺ berdoa bersungguh-sungguh memohon pertolongan Allah bagi golongan kecil yang beriman."
+          }
+        ]
+      },
+      {
+        id: 10,
+        pageRef: "Hal. 248–249",
+        defaultFileName: "adegan-10.png",
+        imageSrc: "",
+        title: "Dimulainya Pertempuran",
+        narration:
+          "Pertempuran diawali dengan tradisi duel satu lawan satu (Mubarazah). Tiga kesatria Quraisy—Utbah bin Rabi'ah, Syaibah bin Rabi'ah, dan Al-Walid bin Utbah—maju menantang, lalu dihadapi oleh tiga pahlawan dari keluarga Rasulullah ﷺ: Hamzah bin Abdul Muththalib, Ali bin Abi Thalib, dan Ubaidah bin Al-Harits. Ketiganya berhasil mengalahkan lawan mereka. Setelah itu, pertempuran terbuka pun meluas sementara kaum Muslimin terus memohon pertolongan Allah.",
+        highlight: "Duel pembuka dimenangkan oleh Hamzah, Ali, dan Ubaidah, lalu pertempuran meluas.",
+        hotspots: [
+          {
+            x: 28,
+            y: 54,
+            title: "Duel Tiga Melawan Tiga",
+            desc: "Hamzah, Ali, dan Ubaidah maju menghadapi Utbah, Syaibah, dan Al-Walid dalam duel pembuka."
+          },
+          {
+            x: 56,
+            y: 44,
+            title: "Kemenangan Awal Muslimin",
+            desc: "Ketiga penantang Quraisy tumbang, mengangkat semangat juang seluruh pasukan Muslim."
+          },
+          {
+            x: 80,
+            y: 60,
+            title: "Seruan Mohon Pertolongan",
+            desc: "Pertempuran meluas di lembah Badar diiringi lantunan doa dan dzikir kaum Muslimin."
+          }
+        ]
+      },
+      {
+        id: 11,
+        pageRef: "Hal. 250–260",
+        defaultFileName: "adegan-11.png",
+        imageSrc: "",
+        title: "Pertolongan Allah dan Kemenangan Muslim",
+        narration:
+          "Rasulullah ﷺ terus berdoa dengan penuh kerendahan hati hingga Allah mengabulkannya dengan menurunkan bantuan para malaikat yang menguatkan hati dan barisan kaum Muslimin. Pasukan Muslim melakukan serangan balik yang teratur dan penuh keberanian hingga barisan Quraisy tercerai-berai. Dalam pertempuran ini, Abu Jahl tumbang setelah diserang dengan berani oleh dua pemuda Ansar (Mu'adz bin Amr dan Mu'awwidz bin Afra') dan dituntaskan oleh Abdullah bin Mas'ud.",
+        highlight: "Allah menurunkan pertolongan malaikat; barisan Quraisy kalah dan Abu Jahl tumbang.",
+        hotspots: [
+          {
+            x: 32,
+            y: 30,
+            title: "Pertolongan Malaikat",
+            desc: "Allah mengirimkan bala bantuan malaikat untuk meneguhkan hati dan membantu orang-orang beriman."
+          },
+          {
+            x: 60,
+            y: 52,
+            title: "Serangan Balik Teratur",
+            desc: "Semangat kaum Muslimin bangkit hingga barisan besar Quraisy kocar-kacir mundur."
+          },
+          {
+            x: 78,
+            y: 66,
+            title: "Tumbangnya Abu Jahl",
+            desc: "Dua pemuda Ansar melumpuhkan Abu Jahl, lalu Abdullah bin Mas'ud memastikan akhir perlawanannya."
+          }
+        ]
+      },
+      {
+        id: 12,
+        pageRef: "Hal. 261–271",
+        defaultFileName: "adegan-12.png",
+        imageSrc: "",
+        title: "Kabar Kemenangan dan Kepulangan Pasukan",
+        narration:
+          "Perang Badar berakhir dengan kemenangan gemilang bagi kaum Muslimin. Tercatat 14 sahabat gugur sebagai syuhada, sementara di pihak Quraisy 70 orang tewas dan 70 lainnya tertawan. Kabar kemenangan segera dibawa ke Madinah oleh Abdullah bin Rawahah dan Zaid bin Haritsah, sedangkan kabar kekalahan sampai ke Makkah. Setelah menetap tiga hari di Badar, pasukan Muslim kembali ke Madinah dengan menerapkan aturan tawanan dan tebusan yang sangat beradab—termasuk mengajarkan membaca dan menulis kepada anak-anak Madinah.",
+        highlight: "14 syahid Muslim, 70 Quraisy tewas & 70 tertawan; tawanan diperlakukan beradab (tebusan mengajar baca-tulis).",
+        hotspots: [
+          {
+            x: 24,
+            y: 48,
+            title: "14 Syuhada & 70 Tawanan",
+            desc: "14 sahabat meraih kemuliaan syahid, sementara 70 pasukan Quraisy tewas dan 70 tertawan."
+          },
+          {
+            x: 56,
+            y: 38,
+            title: "Kabar Gembira ke Madinah",
+            desc: "Abdullah bin Rawahah dan Zaid bin Haritsah diutus menyampaikan berita kemenangan ke Madinah."
+          },
+          {
+            x: 80,
+            y: 60,
+            title: "Tebusan Mengajar Baca-Tulis",
+            desc: "Tawanan yang tidak mampu membayar tebusan harta dibebaskan dengan syarat mengajarkan 10 anak Madinah membaca dan menulis."
+          }
+        ]
+      }
+    ];
+
+    /**
+     * ============================================================================
+     * GENERATOR ILUSTRASI VEKTOR 2D RAMAH ANAK (16:9 PLACEHOLDER ARTWORK)
+     * Setiap adegan memiliki ilustrasi kartun vektor 2D bernuansa hangat tanpa
+     * menampilkan wajah Rasulullah ﷺ, yang otomatis digantikan jika gambar 16:9
+     * dipasang pada slot.
+     * ============================================================================
+     */
+    function getSceneVectorSVG(sceneId) {
+      const commonSkyWarm = `
+        <defs>
+          <linearGradient id="skyWarm-${sceneId}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#1E133B"/>
+            <stop offset="55%" stop-color="#311F63"/>
+            <stop offset="100%" stop-color="#4C2F8A"/>
+          </linearGradient>
+          <linearGradient id="skyNight-${sceneId}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#120B24"/>
+            <stop offset="60%" stop-color="#241747"/>
+            <stop offset="100%" stop-color="#3B2570"/>
+          </linearGradient>
+          <linearGradient id="duneBack-${sceneId}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#5B3A8C"/>
+            <stop offset="100%" stop-color="#38225C"/>
+          </linearGradient>
+          <linearGradient id="duneFront-${sceneId}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#784EB3"/>
+            <stop offset="100%" stop-color="#472B75"/>
+          </linearGradient>
+        </defs>
+      `;
+
+      const clouds = `
+        <g class="float-slow" opacity="0.28">
+          <path d="M120 78 Q132 62 150 68 Q166 56 184 68 Q200 68 202 82 Q202 92 188 92 L124 92 Q112 92 120 78 Z" fill="#DDD6FE"/>
+          <path d="M580 64 Q590 50 606 55 Q620 44 636 55 Q650 55 652 68 Q652 76 638 76 L584 76 Q574 76 580 64 Z" fill="#DDD6FE"/>
+        </g>
+        <g opacity="0.65">
+          <circle cx="95" cy="48" r="2" fill="#FDE68A"/>
+          <circle cx="310" cy="42" r="2.5" fill="#FDE68A"/>
+          <circle cx="485" cy="54" r="2" fill="#DDD6FE"/>
+          <circle cx="725" cy="44" r="2.5" fill="#FDE68A"/>
+        </g>
+      `;
+
+      const camelSilhouette = (x, y, scale = 1, color = "#8B5A2B") => `
+        <g transform="translate(${x}, ${y}) scale(${scale})">
+          <!-- Cargo packs -->
+          <rect x="16" y="8" width="24" height="14" rx="5" fill="#7C3AED"/>
+          <rect x="20" y="5" width="16" height="6" rx="3" fill="#F59E0B"/>
+          <!-- Camel body -->
+          <path d="M10 24 Q20 12 34 14 Q45 15 50 24 L56 10 Q59 4 64 6 Q68 8 65 14 L60 28 Q58 34 50 35 L48 54 L43 54 L43 37 L24 37 L22 54 L17 54 L17 36 Q10 34 10 24 Z" fill="${color}"/>
+        </g>
+      `;
+
+      const palmTree = (x, y, scale = 1) => `
+        <g transform="translate(${x}, ${y}) scale(${scale})">
+          <path d="M18 68 Q22 38 20 14 L26 14 Q28 38 25 68 Z" fill="#8C5828"/>
+          <path d="M23 16 Q6 6 -4 18 Q10 17 22 20 Z" fill="#3B8C5A"/>
+          <path d="M23 16 Q12 -2 2 4 Q14 8 22 18 Z" fill="#4BA36C"/>
+          <path d="M23 16 Q38 4 50 16 Q36 16 24 20 Z" fill="#3B8C5A"/>
+          <path d="M23 16 Q34 -2 44 4 Q32 8 24 18 Z" fill="#4BA36C"/>
+        </g>
+      `;
+
+      const shieldAndBanner = (x, y, bannerColor = "#6D41B0", label = "") => `
+        <g transform="translate(${x}, ${y})">
+          <line x1="12" y1="0" x2="12" y2="78" stroke="#6B4226" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="12" cy="0" r="4" fill="#F59E0B"/>
+          <path d="M14 6 L64 12 L56 26 L64 40 L14 36 Z" fill="${bannerColor}"/>
+          <text x="36" y="26" text-anchor="middle" fill="#FFFFFF" font-family="Fredoka, sans-serif" font-size="11" font-weight="700">${label}</text>
+        </g>
+      `;
+
+      const scenesMap = {
+        1: `
+          ${commonSkyWarm}
+          <rect width="800" height="450" fill="url(#skyWarm-1)"/>
+          <circle cx="670" cy="95" r="42" fill="#FDE68A" opacity="0.85"/>
+          ${clouds}
+          <!-- Distant hills -->
+          <path d="M0 285 Q180 210 380 275 Q590 215 800 270 L800 450 L0 450 Z" fill="url(#duneBack-1)"/>
+          <!-- Caravan Trail -->
+          <path d="M0 325 Q260 280 520 330 Q680 355 800 320 L800 450 L0 450 Z" fill="url(#duneFront-1)"/>
+          <path d="M60 365 Q340 315 740 365" stroke="#B7793B" stroke-width="5" stroke-dasharray="12 10" fill="none" opacity="0.55"/>
+          <!-- Caravan of Camels -->
+          ${camelSilhouette(120, 275, 1.15, "#8C5828")}
+          ${camelSilhouette(235, 285, 1.25, "#7A491D")}
+          ${camelSilhouette(365, 292, 1.3, "#96602E")}
+          ${camelSilhouette(505, 300, 1.2, "#7A491D")}
+          <!-- Map scroll icon badge -->
+          <g transform="translate(615, 235)">
+            <rect x="0" y="0" width="115" height="72" rx="14" fill="#FFFDF9" stroke="#6D41B0" stroke-width="3"/>
+            <text x="57" y="29" text-anchor="middle" fill="#583291" font-family="Fredoka, sans-serif" font-size="14" font-weight="700">SYAM → MAKKAH</text>
+            <text x="57" y="51" text-anchor="middle" fill="#B45309" font-family="Nunito, sans-serif" font-size="13" font-weight="800">± 1.000 Unta</text>
+          </g>
+        `,
+        2: `
+          ${commonSkyWarm}
+          <rect width="800" height="450" fill="url(#skyWarm-2)"/>
+          ${clouds}
+          ${palmTree(64, 210, 1.3)}
+          ${palmTree(122, 224, 1.05)}
+          <path d="M0 290 Q240 245 490 295 Q660 320 800 280 L800 450 L0 450 Z" fill="url(#duneBack-2)"/>
+          <path d="M0 335 Q310 295 800 340 L800 450 L0 450 Z" fill="url(#duneFront-2)"/>
+          <!-- Banners for Muhajirin & Ansar -->
+          ${shieldAndBanner(240, 225, "#6D41B0", "MUHAJIRIN")}
+          ${shieldAndBanner(360, 235, "#059669", "ANSAR")}
+          ${camelSilhouette(450, 285, 1.2, "#8C5828")}
+          ${camelSilhouette(560, 292, 1.15, "#7A491D")}
+          <g transform="translate(520, 140)">
+            <rect x="0" y="0" width="215" height="76" rx="16" fill="#FFFFFF" stroke="#6D41B0" stroke-width="3"/>
+            <text x="107" y="30" text-anchor="middle" fill="#583291" font-family="Fredoka, sans-serif" font-size="15" font-weight="700">313–317 Sahabat</text>
+            <text x="107" y="53" text-anchor="middle" fill="#475569" font-family="Nunito, sans-serif" font-size="13" font-weight="800">70 Unta • 2 Kuda</text>
+          </g>
+        `,
+        3: `
+          ${commonSkyWarm}
+          <rect width="800" height="450" fill="url(#skyWarm-3)"/>
+          <circle cx="135" cy="95" r="46" fill="#FDBA74" opacity="0.7"/>
+          <!-- Makkah rocky mountains -->
+          <path d="M0 290 L130 165 L250 265 L370 150 L500 275 L640 175 L800 290 L800 450 L0 450 Z" fill="#C48952"/>
+          <path d="M0 325 Q350 280 800 330 L800 450 L0 450 Z" fill="url(#duneFront-3)"/>
+          <!-- Messenger camel rushing -->
+          ${camelSilhouette(145, 290, 1.25, "#7C2D12")}
+          <!-- Shields & Spears representing 1300 army -->
+          <g transform="translate(420, 250)">
+            <circle cx="40" cy="45" r="26" fill="#991B1B" stroke="#FBBF24" stroke-width="4"/>
+            <circle cx="95" cy="45" r="26" fill="#7F1D1D" stroke="#FBBF24" stroke-width="4"/>
+            <circle cx="150" cy="45" r="26" fill="#991B1B" stroke="#FBBF24" stroke-width="4"/>
+            <rect x="10" y="82" width="185" height="58" rx="14" fill="#FFFDF9" stroke="#991B1B" stroke-width="3"/>
+            <text x="102" y="106" text-anchor="middle" fill="#991B1B" font-family="Fredoka, sans-serif" font-size="14" font-weight="700">Pasukan Quraisy</text>
+            <text x="102" y="126" text-anchor="middle" fill="#475569" font-family="Nunito, sans-serif" font-size="12" font-weight="800">±1.300 • 100 Kuda • 600 Baju Besi</text>
+          </g>
+        `,
+        4: `
+          ${commonSkyWarm}
+          <rect width="800" height="450" fill="url(#skyWarm-4)"/>
+          ${clouds}
+          <!-- Coastal Sea Wave on Left -->
+          <path d="M0 240 Q140 220 260 270 Q190 360 140 450 L0 450 Z" fill="#38BDF8" opacity="0.75"/>
+          <path d="M220 265 Q480 225 800 280 L800 450 L130 450 Z" fill="url(#duneFront-4)"/>
+          <!-- Diverted Caravan Arrow -->
+          <path d="M360 330 Q260 295 195 235" stroke="#059669" stroke-width="6" stroke-linecap="round" stroke-dasharray="10 8" fill="none"/>
+          <polygon points="188,225 208,232 195,246" fill="#059669"/>
+          ${camelSilhouette(210, 245, 1.05, "#8C5828")}
+          <!-- Red arrow pushing to Badr -->
+          <path d="M470 335 L645 305" stroke="#DC2626" stroke-width="6" stroke-linecap="round" fill="none"/>
+          <polygon points="660,302 640,295 643,315" fill="#DC2626"/>
+          <rect x="465" y="215" width="245" height="68" rx="14" fill="#FFFFFF" stroke="#DC2626" stroke-width="3"/>
+          <text x="587" y="243" text-anchor="middle" fill="#991B1B" font-family="Fredoka, sans-serif" font-size="14" font-weight="700">Kafilah Lolos ke Pesisir</text>
+          <text x="587" y="264" text-anchor="middle" fill="#475569" font-family="Nunito, sans-serif" font-size="12" font-weight="800">Abu Jahl memaksa maju ke Badar</text>
+        `,
+        5: `
+          ${commonSkyWarm}
+          <rect width="800" height="450" fill="url(#skyWarm-5)"/>
+          ${clouds}
+          <path d="M0 305 Q400 260 800 305 L800 450 L0 450 Z" fill="url(#duneFront-5)"/>
+          <!-- Gathering Circle Illustration (No faces of Prophet, symbolic warm light & council) -->
+          <ellipse cx="400" cy="345" rx="250" ry="48" fill="#E9D5FF" stroke="#8458C8" stroke-width="3"/>
+          <!-- Glowing Lantern / Light of Guidance in Center -->
+          <circle cx="400" cy="215" r="56" fill="#FDE68A" opacity="0.45"/>
+          <circle cx="400" cy="215" r="34" fill="#FEF3C7" stroke="#F59E0B" stroke-width="3"/>
+          <text x="400" y="221" text-anchor="middle" fill="#92400E" font-family="Fredoka, sans-serif" font-size="14" font-weight="700">MUSYAWARAH</text>
+          <!-- Two Speech Badges: Muhajirin & Ansar -->
+          <g transform="translate(115, 165)">
+            <rect x="0" y="0" width="185" height="74" rx="16" fill="#FFFFFF" stroke="#6D41B0" stroke-width="3"/>
+            <text x="92" y="29" text-anchor="middle" fill="#583291" font-family="Fredoka, sans-serif" font-size="14" font-weight="700">Kaum Muhajirin</text>
+            <text x="92" y="51" text-anchor="middle" fill="#475569" font-family="Nunito, sans-serif" font-size="12" font-weight="800">Abu Bakar, Umar & Miqdad</text>
+          </g>
+          <g transform="translate(500, 165)">
+            <rect x="0" y="0" width="195" height="74" rx="16" fill="#FFFFFF" stroke="#059669" stroke-width="3"/>
+            <text x="97" y="29" text-anchor="middle" fill="#065F46" font-family="Fredoka, sans-serif" font-size="14" font-weight="700">Kaum Ansar</text>
+            <text x="97" y="51" text-anchor="middle" fill="#475569" font-family="Nunito, sans-serif" font-size="12" font-weight="800">Sa'ad bin Mu'adz Siap Taat!</text>
+          </g>
+        `,
+        6: `
+          ${commonSkyWarm}
+          <rect width="800" height="450" fill="url(#skyWarm-6)"/>
+          ${clouds}
+          <path d="M0 295 Q380 250 800 295 L800 450 L0 450 Z" fill="url(#duneFront-6)"/>
+          <!-- Badr Stone Well -->
+          <g transform="translate(220, 240)">
+            <ellipse cx="95" cy="82" rx="88" ry="28" fill="#0284C7" stroke="#64748B" stroke-width="8"/>
+            <rect x="12" y="65" width="166" height="32" rx="10" fill="#94A3B8"/>
+            <ellipse cx="95" cy="65" rx="83" ry="22" fill="#38BDF8" stroke="#475569" stroke-width="5"/>
+            <!-- Water jars -->
+            <ellipse cx="215" cy="88" rx="16" ry="20" fill="#B45309"/>
+            <ellipse cx="250" cy="92" rx="14" ry="18" fill="#D97706"/>
+          </g>
+          <!-- Intelligence Info Card -->
+          <g transform="translate(495, 150)">
+            <rect x="0" y="0" width="230" height="92" rx="16" fill="#FFFFFF" stroke="#0284C7" stroke-width="3"/>
+            <text x="115" y="30" text-anchor="middle" fill="#0369A1" font-family="Fredoka, sans-serif" font-size="15" font-weight="700">Info dari Sumur Badar</text>
+            <text x="115" y="53" text-anchor="middle" fill="#334155" font-family="Nunito, sans-serif" font-size="12" font-weight="800">9–10 unta disembelih/hari</text>
+            <text x="115" y="74" text-anchor="middle" fill="#6D41B0" font-family="Fredoka, sans-serif" font-size="14" font-weight="700">≈ 900–1.000 Pasukan</text>
+          </g>
+        `,
+        7: `
+          ${commonSkyWarm}
+          <rect width="800" height="450" fill="url(#skyWarm-7)"/>
+          ${clouds}
+          <!-- Strategic Hill on Right -->
+          <path d="M430 330 Q610 175 800 245 L800 450 L430 450 Z" fill="url(#duneBack-7)"/>
+          <path d="M0 315 Q280 285 560 335 L800 335 L800 450 L0 450 Z" fill="url(#duneFront-7)"/>
+          <!-- Command Canopy ('Arisy) on Hill -->
+          <g transform="translate(555, 145)">
+            <polygon points="75,0 150,45 0,45" fill="#6D41B0" stroke="#492B77" stroke-width="3"/>
+            <line x1="20" y1="45" x2="20" y2="95" stroke="#78350F" stroke-width="5"/>
+            <line x1="130" y1="45" x2="130" y2="95" stroke="#78350F" stroke-width="5"/>
+            <rect x="12" y="95" width="126" height="28" rx="8" fill="#FFFFFF" stroke="#6D41B0" stroke-width="2.5"/>
+            <text x="75" y="113" text-anchor="middle" fill="#583291" font-family="Fredoka, sans-serif" font-size="12" font-weight="700">Pos Komando ('Arisy)</text>
+          </g>
+          <!-- Strategic Water Basin built by Al-Hubab -->
+          <g transform="translate(125, 295)">
+            <rect x="0" y="25" width="230" height="58" rx="18" fill="#0EA5E9" stroke="#0369A1" stroke-width="4"/>
+            <path d="M25 48 Q75 40 125 48 T205 48" stroke="#BAE6FD" stroke-width="3" fill="none"/>
+            <rect x="20" y="-12" width="190" height="30" rx="10" fill="#FFFFFF" stroke="#0284C7" stroke-width="2.5"/>
+            <text x="115" y="7" text-anchor="middle" fill="#0369A1" font-family="Fredoka, sans-serif" font-size="12" font-weight="700">Kolam Air Al-Hubab</text>
+          </g>
+        `,
+        8: `
+          ${commonSkyWarm}
+          <rect width="800" height="450" fill="url(#skyNight-8)"/>
+          <!-- Crescent Moon & Stars -->
+          <circle cx="670" cy="82" r="28" fill="#FDE68A"/>
+          <circle cx="682" cy="75" r="24" fill="#37255C"/>
+          <circle cx="150" cy="70" r="3" fill="#FEF3C7"/>
+          <circle cx="290" cy="52" r="2.5" fill="#FEF3C7"/>
+          <circle cx="490" cy="68" r="3" fill="#FEF3C7"/>
+          <!-- Gentle Rain Drops -->
+          <g stroke="#93C5FD" stroke-width="3" stroke-linecap="round" opacity="0.8">
+            <line x1="180" y1="120" x2="170" y2="145"/>
+            <line x1="260" y1="140" x2="250" y2="165"/>
+            <line x1="340" y1="115" x2="330" y2="140"/>
+            <line x1="420" y1="145" x2="410" y2="170"/>
+            <line x1="500" y1="120" x2="490" y2="145"/>
+          </g>
+          <!-- Firm Ground for Muslims vs Slippery Ground for Quraisy -->
+          <path d="M0 315 Q240 295 450 325 L450 450 L0 450 Z" fill="#D9A76A"/>
+          <path d="M450 325 Q630 340 800 315 L800 450 L450 450 Z" fill="#785334"/>
+          <rect x="85" y="210" width="275" height="72" rx="16" fill="#FFFFFF" stroke="#6D41B0" stroke-width="3"/>
+          <text x="222" y="240" text-anchor="middle" fill="#583291" font-family="Fredoka, sans-serif" font-size="15" font-weight="700">Hujan Rahmat & Ketenangan</text>
+          <text x="222" y="262" text-anchor="middle" fill="#475569" font-family="Nunito, sans-serif" font-size="12" font-weight="800">Pijakan pasir kaum Muslimin kokoh</text>
+        `,
+        9: `
+          ${commonSkyWarm}
+          <rect width="800" height="450" fill="url(#skyWarm-9)"/>
+          ${clouds}
+          <path d="M0 300 Q400 265 800 300 L800 450 L0 450 Z" fill="url(#duneFront-9)"/>
+          <!-- Straightened Rows (Shaf) Left (Muslimin) -->
+          <g transform="translate(115, 225)">
+            <rect x="0" y="0" width="185" height="34" rx="10" fill="#6D41B0"/>
+            <text x="92" y="22" text-anchor="middle" fill="#FFFFFF" font-family="Fredoka, sans-serif" font-size="13" font-weight="700">BARISAN LURUS & RAPI</text>
+            <!-- Neat shields in straight row -->
+            <rect x="14" y="48" width="24" height="58" rx="12" fill="#7C3AED" stroke="#FFFFFF" stroke-width="2.5"/>
+            <rect x="46" y="48" width="24" height="58" rx="12" fill="#7C3AED" stroke="#FFFFFF" stroke-width="2.5"/>
+            <rect x="78" y="48" width="24" height="58" rx="12" fill="#7C3AED" stroke="#FFFFFF" stroke-width="2.5"/>
+            <rect x="110" y="48" width="24" height="58" rx="12" fill="#7C3AED" stroke="#FFFFFF" stroke-width="2.5"/>
+            <rect x="142" y="48" width="24" height="58" rx="12" fill="#10B981" stroke="#FFFFFF" stroke-width="2.5"/>
+          </g>
+          <!-- Opposing Quraisy Side Right -->
+          <g transform="translate(500, 225)">
+            <rect x="0" y="0" width="185" height="34" rx="10" fill="#991B1B"/>
+            <text x="92" y="22" text-anchor="middle" fill="#FFFFFF" font-family="Fredoka, sans-serif" font-size="13" font-weight="700">PASUKAN QURAISY</text>
+            <circle cx="32" cy="76" r="20" fill="#B91C1C" stroke="#FCD34D" stroke-width="2.5"/>
+            <circle cx="88" cy="76" r="20" fill="#B91C1C" stroke="#FCD34D" stroke-width="2.5"/>
+            <circle cx="144" cy="76" r="20" fill="#B91C1C" stroke="#FCD34D" stroke-width="2.5"/>
+          </g>
+          <!-- Prayer Rays -->
+          <circle cx="400" cy="145" r="42" fill="#FEF3C7" stroke="#F59E0B" stroke-width="3"/>
+          <text x="400" y="150" text-anchor="middle" fill="#92400E" font-family="Fredoka, sans-serif" font-size="13" font-weight="700">DOA & TAWAKAL</text>
+        `,
+        10: `
+          ${commonSkyWarm}
+          <rect width="800" height="450" fill="url(#skyWarm-10)"/>
+          ${clouds}
+          <path d="M0 305 Q400 270 800 305 L800 450 L0 450 Z" fill="url(#duneFront-10)"/>
+          <!-- Three Champion Badges for Duel (Mubarazah) -->
+          <g transform="translate(115, 165)">
+            <rect x="0" y="0" width="170" height="115" rx="20" fill="#FFFFFF" stroke="#6D41B0" stroke-width="3"/>
+            <circle cx="85" cy="42" r="22" fill="#EDE7F8" stroke="#6D41B0" stroke-width="2.5"/>
+            <text x="85" y="47" text-anchor="middle" fill="#583291" font-family="Fredoka, sans-serif" font-size="14" font-weight="700">I</text>
+            <text x="85" y="84" text-anchor="middle" fill="#583291" font-family="Fredoka, sans-serif" font-size="15" font-weight="700">Hamzah</text>
+            <text x="85" y="102" text-anchor="middle" fill="#64748B" font-family="Nunito, sans-serif" font-size="11" font-weight="800">Singa Allah</text>
+          </g>
+          <g transform="translate(315, 150)">
+            <rect x="0" y="0" width="170" height="115" rx="20" fill="#FFFFFF" stroke="#6D41B0" stroke-width="3"/>
+            <circle cx="85" cy="42" r="22" fill="#EDE7F8" stroke="#6D41B0" stroke-width="2.5"/>
+            <text x="85" y="47" text-anchor="middle" fill="#583291" font-family="Fredoka, sans-serif" font-size="14" font-weight="700">II</text>
+            <text x="85" y="84" text-anchor="middle" fill="#583291" font-family="Fredoka, sans-serif" font-size="15" font-weight="700">Ali bin Abi Thalib</text>
+            <text x="85" y="102" text-anchor="middle" fill="#64748B" font-family="Nunito, sans-serif" font-size="11" font-weight="800">Menang Duel</text>
+          </g>
+          <g transform="translate(515, 165)">
+            <rect x="0" y="0" width="170" height="115" rx="20" fill="#FFFFFF" stroke="#6D41B0" stroke-width="3"/>
+            <circle cx="85" cy="42" r="22" fill="#EDE7F8" stroke="#6D41B0" stroke-width="2.5"/>
+            <text x="85" y="47" text-anchor="middle" fill="#583291" font-family="Fredoka, sans-serif" font-size="14" font-weight="700">III</text>
+            <text x="85" y="84" text-anchor="middle" fill="#583291" font-family="Fredoka, sans-serif" font-size="15" font-weight="700">Ubaidah</text>
+            <text x="85" y="102" text-anchor="middle" fill="#64748B" font-family="Nunito, sans-serif" font-size="11" font-weight="800">bin Al-Harits</text>
+          </g>
+        `,
+        11: `
+          ${commonSkyWarm}
+          <rect width="800" height="450" fill="url(#skyWarm-11)"/>
+          <!-- Radiant Beams of Heavenly Assistance -->
+          <polygon points="400,20 180,310 620,310" fill="#FEF08A" opacity="0.5"/>
+          <polygon points="400,20 270,310 530,310" fill="#FDE047" opacity="0.45"/>
+          <path d="M0 305 Q400 265 800 305 L800 450 L0 450 Z" fill="url(#duneFront-11)"/>
+          <!-- Winged Light Motifs (Symbolic of Angels' Support) -->
+          <g transform="translate(230, 115)" fill="#FFFFFF" opacity="0.9">
+            <path d="M40 30 Q10 5 0 22 Q15 35 38 38 Z"/>
+            <path d="M44 30 Q74 5 84 22 Q69 35 46 38 Z"/>
+          </g>
+          <g transform="translate(485, 115)" fill="#FFFFFF" opacity="0.9">
+            <path d="M40 30 Q10 5 0 22 Q15 35 38 38 Z"/>
+            <path d="M44 30 Q74 5 84 22 Q69 35 46 38 Z"/>
+          </g>
+          <rect x="235" y="215" width="330" height="82" rx="20" fill="#FFFFFF" stroke="#6D41B0" stroke-width="3.5"/>
+          <text x="400" y="248" text-anchor="middle" fill="#583291" font-family="Fredoka, sans-serif" font-size="18" font-weight="700">Pertolongan Allah Tiba!</text>
+          <text x="400" y="274" text-anchor="middle" fill="#047857" font-family="Nunito, sans-serif" font-size="13" font-weight="800">Kaum Muslimin menang & Abu Jahl tumbang</text>
+        `,
+        12: `
+          ${commonSkyWarm}
+          <rect width="800" height="450" fill="url(#skyWarm-12)"/>
+          ${clouds}
+          ${palmTree(640, 195, 1.35)}
+          ${palmTree(700, 215, 1.1)}
+          <path d="M0 305 Q400 265 800 305 L800 450 L0 450 Z" fill="url(#duneFront-12)"/>
+          <!-- Summary & Noble Treatment Card -->
+          <g transform="translate(95, 145)">
+            <rect x="0" y="0" width="245" height="145" rx="20" fill="#FFFFFF" stroke="#6D41B0" stroke-width="3"/>
+            <text x="122" y="34" text-anchor="middle" fill="#583291" font-family="Fredoka, sans-serif" font-size="16" font-weight="700">Hasil Perang Badar</text>
+            <text x="122" y="64" text-anchor="middle" fill="#059669" font-family="Nunito, sans-serif" font-size="13" font-weight="800">✓ 14 Syuhada Muslim</text>
+            <text x="122" y="90" text-anchor="middle" fill="#B45309" font-family="Nunito, sans-serif" font-size="13" font-weight="800">• 70 Quraisy Tewas</text>
+            <text x="122" y="116" text-anchor="middle" fill="#475569" font-family="Nunito, sans-serif" font-size="13" font-weight="800">• 70 Tawanan Perang</text>
+          </g>
+          <g transform="translate(370, 165)">
+            <rect x="0" y="0" width="245" height="115" rx="20" fill="#FFFDF9" stroke="#D97706" stroke-width="3"/>
+            <text x="122" y="34" text-anchor="middle" fill="#92400E" font-family="Fredoka, sans-serif" font-size="15" font-weight="700">Tebusan Beradab</text>
+            <text x="122" y="62" text-anchor="middle" fill="#334155" font-family="Nunito, sans-serif" font-size="12" font-weight="800">Mengajar membaca & menulis</text>
+            <text x="122" y="84" text-anchor="middle" fill="#6D41B0" font-family="Nunito, sans-serif" font-size="12" font-weight="800">bagi anak-anak Madinah</text>
+          </g>
+        `
+      };
+
+      return `
+        <svg viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice" class="w-full h-full block" xmlns="http://www.w3.org/2000/svg">
+          ${scenesMap[sceneId] || scenesMap[1]}
+        </svg>
+      `;
+    }
+
+    /**
+     * ============================================================================
+     * APPLICATION STATE & DOM REFERENCES
+     * ============================================================================
+     */
+    let currentIndex = 0;
+    let hotspotsVisible = false;
+    let isAnimating = false;
+    // Stores temporary local uploaded DataURLs per scene index if user tests images
+    const uploadedImages = {};
+
+    const pageStage = document.getElementById("pageStage");
+    const bookViewport = document.getElementById("bookViewport");
+    const pageCounterBadge = document.getElementById("pageCounterBadge");
+    const topProgressBar = document.getElementById("topProgressBar");
+
+    const btnToggleAudio = document.getElementById("btnToggleAudio");
+    const iconAudioOn = document.getElementById("iconAudioOn");
+    const iconAudioOff = document.getElementById("iconAudioOff");
+    const audioStatusText = document.getElementById("audioStatusText");
+
+    const illustrationFrame = document.getElementById("illustrationFrame");
+    const vectorFallbackContainer = document.getElementById("vectorFallbackContainer");
+    const sceneImageElement = document.getElementById("sceneImageElement");
+    const slotReadyTag = document.getElementById("slotReadyTag");
+    const slotFileLabel = document.getElementById("slotFileLabel");
+    const imageUploadInput = document.getElementById("imageUploadInput");
+
+    const hotspotsLayer = document.getElementById("hotspotsLayer");
+    const hotspotCard = document.getElementById("hotspotCard");
+    const hotspotBadgeIcon = document.getElementById("hotspotBadgeIcon");
+    const hotspotTitle = document.getElementById("hotspotTitle");
+    const hotspotDesc = document.getElementById("hotspotDesc");
+    const btnCloseHotspotCard = document.getElementById("btnCloseHotspotCard");
+    const btnToggleHotspots = document.getElementById("btnToggleHotspots");
+    const btnHotspotLabel = document.getElementById("btnHotspotLabel");
+
+    const sceneStepBadge = document.getElementById("sceneStepBadge");
+    const bookPageRef = document.getElementById("bookPageRef");
+    const sceneTitle = document.getElementById("sceneTitle");
+    const sceneNarration = document.getElementById("sceneNarration");
+    const sceneHighlightSummary = document.getElementById("sceneHighlightSummary");
+
+    const btnPrev = document.getElementById("btnPrev");
+    const btnNext = document.getElementById("btnNext");
+    const btnNextText = document.getElementById("btnNextText");
+    const pageDotsContainer = document.getElementById("pageDotsContainer");
+    const footerChapterShort = document.getElementById("footerChapterShort");
+
+    const indexModal = document.getElementById("indexModal");
+    const btnOpenIndex = document.getElementById("btnOpenIndex");
+    const btnCloseIndex = document.getElementById("btnCloseIndex");
+    const sceneIndexGrid = document.getElementById("sceneIndexGrid");
+
+    /**
+     * ============================================================================
+     * RENDER SCENE CONTENT
+     * ============================================================================
+     */
+    function renderScene(index) {
+      const scene = SCENES[index];
+      const total = SCENES.length;
+
+      // Update Header & Progress
+      pageCounterBadge.textContent = `${index + 1}/${total}`;
+      topProgressBar.style.width = `${((index + 1) / total) * 100}%`;
+
+      // Update Narration Box
+      sceneStepBadge.textContent = `Adegan ${index + 1} dari ${total}`;
+      bookPageRef.textContent = `📖 ${scene.pageRef}`;
+      sceneTitle.textContent = scene.title;
+      sceneNarration.textContent = scene.narration;
+      sceneHighlightSummary.textContent = scene.highlight;
+      footerChapterShort.textContent = `${index + 1}. ${scene.title}`;
+
+      // Render 16:9 Vector Placeholder + Check if custom/uploaded image exists
+      vectorFallbackContainer.innerHTML = getSceneVectorSVG(scene.id);
+      slotFileLabel.textContent = `Slot Ilustrasi 16:9 • ${scene.defaultFileName}`;
+
+      const activeImgUrl = uploadedImages[index] || scene.imageSrc;
+      if (activeImgUrl) {
+        sceneImageElement.src = activeImgUrl;
+        sceneImageElement.classList.remove("hidden");
+        slotReadyTag.classList.add("hidden");
+      } else {
+        sceneImageElement.src = "";
+        sceneImageElement.classList.add("hidden");
+        slotReadyTag.classList.remove("hidden");
+      }
+
+      // Render Hotspots for this scene
+      renderHotspots(scene);
+
+      // Update Navigation Buttons
+      btnPrev.disabled = index === 0;
+      if (index === total - 1) {
+        btnNextText.textContent = "Selesai";
+        btnNext.disabled = false;
+      } else {
+        btnNextText.textContent = "Berikutnya";
+        btnNext.disabled = false;
+      }
+
+      // Update Bottom Dots
+      updatePageDots();
+    }
+
+    function renderHotspots(scene) {
+      hotspotsLayer.innerHTML = "";
+      hotspotCard.classList.add("hidden");
+
+      btnHotspotLabel.textContent = hotspotsVisible
+        ? "Sembunyikan Poin Penting"
+        : `Sorot Poin Penting (${scene.hotspots.length})`;
+
+      if (hotspotsVisible) {
+        hotspotsLayer.classList.remove("hidden");
+        btnToggleHotspots.classList.remove("bg-gold-warm/15", "text-gold-soft", "border-gold-warm/40");
+        btnToggleHotspots.classList.add("bg-gold-warm", "text-plum-deep", "border-gold-soft");
+      } else {
+        hotspotsLayer.classList.add("hidden");
+        btnToggleHotspots.classList.add("bg-gold-warm/15", "text-gold-soft", "border-gold-warm/40");
+        btnToggleHotspots.classList.remove("bg-gold-warm", "text-plum-deep", "border-gold-soft");
+      }
+
+      scene.hotspots.forEach((spot, idx) => {
+        const pinBtn = document.createElement("button");
+        pinBtn.type = "button";
+        pinBtn.style.left = `${spot.x}%`;
+        pinBtn.style.top = `${spot.y}%`;
+        pinBtn.setAttribute("aria-label", `Poin ${idx + 1}: ${spot.title}`);
+        pinBtn.className =
+          "absolute -translate-x-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-gold-warm to-gold-amber hover:from-gold-soft hover:to-gold-warm text-plum-deep font-storybook font-bold text-sm sm:text-base border-2 border-white shadow-lg flex items-center justify-center cursor-pointer transition-transform hover:scale-110 focus:outline-none";
+
+        pinBtn.innerHTML = `
+          <span class="hotspot-ring absolute inset-0 rounded-full bg-gold-warm -z-10"></span>
+          <span>${idx + 1}</span>
+        `;
+
+        pinBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          StoryAudioEngine.playHotspotChimeSFX(idx + 1);
+          hotspotBadgeIcon.textContent = `${idx + 1}`;
+          hotspotTitle.textContent = spot.title;
+          hotspotDesc.textContent = spot.desc;
+          hotspotCard.classList.remove("hidden");
+        });
+
+        hotspotsLayer.appendChild(pinBtn);
+      });
+    }
+
+    function updateAudioUI() {
+      const { isMuted, isStarted } = StoryAudioEngine.getState();
+      if (isMuted) {
+        iconAudioOn.classList.add("hidden");
+        iconAudioOff.classList.remove("hidden");
+        audioStatusText.textContent = "Audio: Bisukan";
+        btnToggleAudio.classList.remove("border-gold-warm/45");
+        btnToggleAudio.classList.add("border-ghazi-300/20", "opacity-80");
+      } else {
+        iconAudioOn.classList.remove("hidden");
+        iconAudioOff.classList.add("hidden");
+        audioStatusText.textContent = isStarted ? "Audio: Aktif" : "Audio: Siap";
+        btnToggleAudio.classList.add("border-gold-warm/45");
+        btnToggleAudio.classList.remove("border-ghazi-300/20", "opacity-80");
+      }
+    }
+
+    function updatePageDots() {
+      pageDotsContainer.innerHTML = "";
+      SCENES.forEach((scene, idx) => {
+        const dot = document.createElement("button");
+        dot.type = "button";
+        dot.setAttribute("aria-label", `Ke halaman ${idx + 1}: ${scene.title}`);
+        dot.title = `${idx + 1}. ${scene.title}`;
+        const isActive = idx === currentIndex;
+        dot.className = isActive
+          ? "h-2.5 w-6 sm:w-7 rounded-full bg-gradient-to-r from-ghazi-400 to-gold-warm transition-all duration-200 cursor-pointer"
+          : "h-2.5 w-2.5 rounded-full bg-ghazi-300/30 hover:bg-ghazi-300/60 transition-all duration-200 cursor-pointer";
+
+        dot.addEventListener("click", () => {
+          if (idx !== currentIndex) {
+            goToScene(idx, idx > currentIndex ? "next" : "prev");
+          }
+        });
+
+        pageDotsContainer.appendChild(dot);
+      });
+    }
+
+    /**
+     * ============================================================================
+     * PAGE FLIP / SWIPE TRANSITION LOGIC
+     * ============================================================================
+     */
+    function goToScene(targetIndex, direction = "next") {
+      if (isAnimating) return;
+
+      // If on last page and user clicks "Selesai", loop smoothly back to page 1
+      if (targetIndex >= SCENES.length) {
+        targetIndex = 0;
+        direction = "next";
+      }
+      if (targetIndex < 0) return;
+
+      StoryAudioEngine.playPageTurnSFX(direction);
+
+      isAnimating = true;
+      const exitClass = direction === "next" ? "page-exit-left" : "page-exit-right";
+      const enterClass = direction === "next" ? "page-enter-from-right" : "page-enter-from-left";
+
+      pageStage.classList.add(exitClass);
+
+      setTimeout(() => {
+        currentIndex = targetIndex;
+        renderScene(currentIndex);
+
+        pageStage.classList.remove(exitClass);
+        pageStage.classList.add(enterClass);
+
+        // Force reflow so enter transition triggers cleanly
+        void pageStage.offsetWidth;
+
+        requestAnimationFrame(() => {
+          pageStage.classList.remove(enterClass);
+          setTimeout(() => {
+            isAnimating = false;
+          }, 260);
+        });
+      }, 210);
+    }
+
+    /**
+     * ============================================================================
+     * TOUCH SWIPE & MOUSE DRAG GESTURES (BOOK PAGE TURN FEEL)
+     * ============================================================================
+     */
+    let pointerStartX = 0;
+    let pointerStartY = 0;
+    let isPointerDown = false;
+
+    function handleGestureStart(x, y) {
+      pointerStartX = x;
+      pointerStartY = y;
+      isPointerDown = true;
+    }
+
+    function handleGestureEnd(x, y) {
+      if (!isPointerDown) return;
+      isPointerDown = false;
+
+      const deltaX = x - pointerStartX;
+      const deltaY = y - pointerStartY;
+      const minSwipeDistance = 48;
+
+      // Ensure horizontal swipe dominates vertical scrolling
+      if (Math.abs(deltaX) > minSwipeDistance && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+        if (deltaX < 0 && currentIndex < SCENES.length - 1) {
+          goToScene(currentIndex + 1, "next");
+        } else if (deltaX > 0 && currentIndex > 0) {
+          goToScene(currentIndex - 1, "prev");
+        }
+      }
+    }
+
+    // Touch Events for Mobile & Tablet
+    bookViewport.addEventListener(
+      "touchstart",
+      (e) => {
+        if (e.touches.length === 1) {
+          handleGestureStart(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      },
+      { passive: true }
+    );
+
+    bookViewport.addEventListener(
+      "touchend",
+      (e) => {
+        if (e.changedTouches.length === 1) {
+          handleGestureEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+        }
+      },
+      { passive: true }
+    );
+
+    // Mouse Drag Events for Desktop
+    bookViewport.addEventListener("mousedown", (e) => {
+      // Avoid triggering drag swipe when clicking buttons or labels
+      if (e.target.closest("button, label, input")) return;
+      handleGestureStart(e.clientX, e.clientY);
+    });
+
+    window.addEventListener("mouseup", (e) => {
+      if (!isPointerDown) return;
+      handleGestureEnd(e.clientX, e.clientY);
+    });
+
+    // Keyboard Left/Right Arrows & Escape
+    window.addEventListener("keydown", (e) => {
+      if (!indexModal.classList.contains("hidden")) {
+        if (e.key === "Escape") indexModal.classList.add("hidden");
+        return;
+      }
+      if (e.key === "ArrowRight") {
+        if (currentIndex < SCENES.length - 1) goToScene(currentIndex + 1, "next");
+      } else if (e.key === "ArrowLeft") {
+        if (currentIndex > 0) goToScene(currentIndex - 1, "prev");
+      }
+    });
+
+    /**
+     * ============================================================================
+     * BUTTON & MODAL EVENT LISTENERS
+     * ============================================================================
+     */
+    // Unlock Web Audio API safely on first user gesture anywhere on page
+    ["pointerdown", "touchstart", "keydown"].forEach((evtName) => {
+      window.addEventListener(
+        evtName,
+        () => {
+          StoryAudioEngine.unlockAndStart();
+        },
+        { once: true, passive: true }
+      );
+    });
+
+    btnToggleAudio.addEventListener("click", (e) => {
+      e.stopPropagation();
+      StoryAudioEngine.toggleMute();
+    });
+
+    btnPrev.addEventListener("click", () => {
+      if (currentIndex > 0) goToScene(currentIndex - 1, "prev");
+    });
+
+    btnNext.addEventListener("click", () => {
+      goToScene(currentIndex + 1, "next");
+    });
+
+    btnToggleHotspots.addEventListener("click", () => {
+      hotspotsVisible = !hotspotsVisible;
+      if (hotspotsVisible) {
+        StoryAudioEngine.playHotspotChimeSFX(1);
+      } else {
+        StoryAudioEngine.playClickSFX();
+      }
+      renderHotspots(SCENES[currentIndex]);
+    });
+
+    btnCloseHotspotCard.addEventListener("click", () => {
+      StoryAudioEngine.playClickSFX();
+      hotspotCard.classList.add("hidden");
+    });
+
+    // Handle local 16:9 image preview upload per scene
+    imageUploadInput.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        uploadedImages[currentIndex] = ev.target.result;
+        renderScene(currentIndex);
+      };
+      reader.readAsDataURL(file);
+      e.target.value = "";
+    });
+
+    // Fallback if static image path fails to load
+    sceneImageElement.addEventListener("error", () => {
+      sceneImageElement.classList.add("hidden");
+      slotReadyTag.classList.remove("hidden");
+    });
+
+    // Scene Index Modal
+    function buildIndexModal() {
+      sceneIndexGrid.innerHTML = "";
+      SCENES.forEach((scene, idx) => {
+        const card = document.createElement("button");
+        card.type = "button";
+        const isCurrent = idx === currentIndex;
+        card.className = `text-left p-3.5 rounded-2xl border transition flex items-start gap-3 cursor-pointer ${
+          isCurrent
+            ? "bg-plum-elevated border-gold-warm/60 shadow-sm"
+            : "bg-plum-card hover:bg-plum-elevated/80 border-ghazi-300/20"
+        }`;
+
+        card.innerHTML = `
+          <span class="w-8 h-8 rounded-xl ${
+            isCurrent ? "bg-gradient-to-br from-gold-warm to-gold-amber text-plum-deep" : "bg-plum-deep text-ghazi-200 border border-ghazi-300/25"
+          } font-storybook font-bold text-sm flex items-center justify-center shrink-0">
+            ${idx + 1}
+          </span>
+          <div class="min-w-0">
+            <div class="text-[11px] font-extrabold text-gold-warm">${scene.pageRef}</div>
+            <div class="font-storybook font-bold text-sm text-ghazi-50 truncate">${scene.title}</div>
+          </div>
+        `;
+
+        card.addEventListener("click", () => {
+          indexModal.classList.add("hidden");
+          if (idx !== currentIndex) {
+            goToScene(idx, idx > currentIndex ? "next" : "prev");
+          } else {
+            StoryAudioEngine.playClickSFX();
+          }
+        });
+
+        sceneIndexGrid.appendChild(card);
+      });
+    }
+
+    btnOpenIndex.addEventListener("click", () => {
+      StoryAudioEngine.playClickSFX();
+      buildIndexModal();
+      indexModal.classList.remove("hidden");
+    });
+
+    btnCloseIndex.addEventListener("click", () => {
+      StoryAudioEngine.playClickSFX();
+      indexModal.classList.add("hidden");
+    });
+
+    indexModal.addEventListener("click", (e) => {
+      if (e.target === indexModal) {
+        StoryAudioEngine.playClickSFX();
+        indexModal.classList.add("hidden");
+      }
+    });
+
+    // Initialize First Page on Load
+    window.addEventListener("DOMContentLoaded", () => {
+      renderScene(0);
+      updateAudioUI();
+    });
+  </script>
+</body>
+</html>
